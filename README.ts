@@ -84,7 +84,7 @@ you would any other object.
 !*/
 
 //>
-function Post_getSummary(post: Post): string | undefined {
+export function getSummary(post: Post): string | undefined {
 	if (post.$type === "Text") {
 		return post.title;
 	}
@@ -93,42 +93,38 @@ function Post_getSummary(post: Post): string | undefined {
 	}
 	return undefined;
 }
-void Post_getSummary; //-
+void getSummary; //-
 //<
 
 //>>> Handle all cases.
 //>
-{
-	const foo = {} as Foo;
-	const value = ((): string => {
-		switch (foo.$type) {
-			case "Unit":
-				return "Unit()";
-			case "Data":
-				return `Data(${foo.value})`;
-			default:
-				return foo;
-		}
-	})();
-	void value; //-
-}
+const foo_ = {} as Foo;
+const value_ = ((): string => {
+	switch (foo_.$type) {
+		case "Unit":
+			return "Unit()";
+		case "Data":
+			return `Data(${foo_.value})`;
+		default:
+			return foo_;
+	}
+})();
+void value_; //-
 //<
 //<<<
 
 //>>> Unhandled cases with fallback.
 //>
-{
-	const foo = {} as Foo;
-	const value = ((): string => {
-		switch (foo.$type) {
-			case "Unit":
-				return "Unit()";
-			default:
-				return "...";
-		}
-	})();
-	void value; //-
-}
+const foo__ = {} as Foo;
+const value__ = ((): string => {
+	switch (foo__.$type) {
+		case "Unit":
+			return "Unit()";
+		default:
+			return "...";
+	}
+})();
+void value__; //-
 //<
 //<<<
 
@@ -144,7 +140,7 @@ type State =
 
 const State = ADT<State>();
 
-function Component(): Element {
+export function Component(): Element {
 	const [state, setState] = useState<State>(State.Pending());
 
 	// fetch data and exclusively handle success or error states
@@ -233,11 +229,9 @@ void foo; //-
 !*/
 //>>> Infers all keys of an ADT's variants.
 //>
-{
-	type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
-	type Keys = ADT.Keys<T>;
-	void {} as unknown as Keys; //-
-}
+type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
+type Keys = ADT.Keys<T>;
+void {} as unknown as Keys; //-
 // -> "Unit" | "Data"
 //<
 //<<<
@@ -253,11 +247,9 @@ void foo; //-
 !*/
 //>>> Pick subset of an ADT's variants by key.
 //>
-{
-	type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
-	type Variants = ADT.Pick<T, "Unit">;
-	void {} as unknown as Variants; //-
-}
+type T_ = ADT<"Unit"> | ADT<"Data", { value: string }>;
+type Variants_ = ADT.Pick<T_, "Unit">;
+void {} as unknown as Variants_; //-
 // -> *Unit
 //<
 //<<<
@@ -273,12 +265,11 @@ void foo; //-
 !*/
 //>>> Omit subset of an ADT's variants by key.
 //>
-{
-	type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
-	type Variants = ADT.Omit<T, "Unit">;
-	void {} as unknown as Variants; //-
-}
+type T__ = ADT<"Unit"> | ADT<"Data", { value: string }>;
+type Variants__ = ADT.Omit<T__, "Unit">;
+void {} as unknown as Variants__; //-
 // -> *Data
+//<
 //<<<
 
 //backtotop

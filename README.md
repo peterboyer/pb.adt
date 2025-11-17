@@ -82,7 +82,7 @@ you would any other object.
 
 
 ```ts
-function PostgetSummary(post: Post): string | undefined {
+export function getSummary(post: Post): string | undefined {
   if (post.$type === "Text") {
     return post.title;
   }
@@ -97,19 +97,17 @@ function PostgetSummary(post: Post): string | undefined {
 <details><summary>(<strong>Example</strong>) Handle all cases.</summary>
 
 ```ts
-{
-  const foo = {} as Foo;
-  const value = ((): string => {
-    switch (foo.$type) {
-      case "Unit":
-        return "Unit()";
-      case "Data":
-        return `Data(${foo.value})`;
-      default:
-        return foo;
-    }
-  })();
-}
+const foo = {} as Foo;
+const value = ((): string => {
+  switch (foo.$type) {
+    case "Unit":
+      return "Unit()";
+    case "Data":
+      return `Data(${foo.value})`;
+    default:
+      return foo;
+  }
+})();
 ```
 
 </details>
@@ -117,17 +115,15 @@ function PostgetSummary(post: Post): string | undefined {
 <details><summary>(<strong>Example</strong>) Unhandled cases with fallback.</summary>
 
 ```ts
-{
-  const foo = {} as Foo;
-  const value = ((): string => {
-    switch (foo.$type) {
-      case "Unit":
-        return "Unit()";
-      default:
-        return "...";
-    }
-  })();
-}
+const foo = {} as Foo;
+const value = ((): string => {
+  switch (foo.$type) {
+    case "Unit":
+      return "Unit()";
+    default:
+      return "...";
+  }
+})();
 ```
 
 </details>
@@ -142,7 +138,7 @@ type State =
 
 const State = ADT<State>();
 
-function Component(): Element {
+export function Component(): Element {
   const [state, setState] = useState<State>(State.Pending());
 
   // fetch data and exclusively handle success or error states
@@ -226,10 +222,8 @@ const foo = [
 <details><summary>(<strong>Example</strong>) Infers all keys of an ADT's variants.</summary>
 
 ```ts
-{
-  type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
-  type Keys = ADT.Keys<T>;
-}
+type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
+type Keys = ADT.Keys<T>;
 // -> "Unit" | "Data"
 ```
 
@@ -245,10 +239,8 @@ const foo = [
 <details><summary>(<strong>Example</strong>) Pick subset of an ADT's variants by key.</summary>
 
 ```ts
-{
-  type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
-  type Variants = ADT.Pick<T, "Unit">;
-}
+type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
+type Variants = ADT.Pick<T, "Unit">;
 // -> *Unit
 ```
 
@@ -264,11 +256,11 @@ const foo = [
 <details><summary>(<strong>Example</strong>) Omit subset of an ADT's variants by key.</summary>
 
 ```ts
-{
-  type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
-  type Variants = ADT.Omit<T, "Unit">;
-}
+type T = ADT<"Unit"> | ADT<"Data", { value: string }>;
+type Variants = ADT.Omit<T, "Unit">;
 // -> *Data
+```
+
 </details>
 
 <div align=right><a href=#api>Back to top ⤴</a></div>
