@@ -3,12 +3,13 @@
 	"version": "1.0.0",
 	"license": "MIT",
 	"author": "Peter Boyer <https://github.com/peterboyer>",
-	"description": "Universal ADT utilities.",
+	"description": "Universal ADT utility.",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/peterboyer/adt.git"
 	},
 	"type": "module",
+	"main": "./index.js",
 	"exports": "./index.js",
 	"types": "./index.d.ts",
 	"sideEffects": false,

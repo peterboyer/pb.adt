@@ -1,49 +1,27 @@
-import type { ADT } from "./adt.js";
+import { ADT } from "./micro.js";
 
 import type { Expect, Equal } from "pb.expectequal";
 
-type None = Record<never, never>;
-type Unit = { Unit: true };
-type Data = { Data: { value: unknown } };
-type Both = Unit & Data;
-type Generic<T> = { Generic: { value: T } };
-
-type ENone = ADT<None>;
-type EUnit = ADT<Unit>;
-type EData = ADT<Data>;
-type EBoth = ADT<Both>;
-type EGeneric<T> = ADT<Generic<T>>;
+type ENone = ADT;
+type EUnit = ADT<"Unit">;
+type EData = ADT<"Data", { value: unknown }>;
+type EBoth = EUnit | EData;
 
 // prettier-ignore
 ({}) as [
-	Expect<Equal<ENone, never>>,
-	Expect<Equal<ENone["$type"], never>>,
+	Expect<Equal<ENone, ADT>>,
+	Expect<Equal<ENone["$type"], string>>,
 	Expect<Equal<EUnit, { $type: "Unit" }>>,
 	Expect<Equal<EUnit["$type"], "Unit">>,
 	Expect<Equal<EData, { $type: "Data"; value: unknown }>>,
 	Expect<Equal<EData["$type"], "Data">>,
 	Expect<Equal<EBoth, { $type: "Unit" } | { $type: "Data"; value: unknown }>>,
 	Expect<Equal<EBoth["$type"], "Unit" | "Data">>,
-	Expect<Equal<EGeneric<number>, { $type: "Generic"; value: number }>>,
-	Expect<Equal<EGeneric<number>["$type"], "Generic">>,
 
-	Expect<Equal<ADT.Root<ENone>, never>>,
-	Expect<Equal<ADT.Root<EUnit>, { Unit: true }>>,
-	Expect<Equal<ADT.Root<EData>, { Data: { value: unknown } }>>,
-	Expect<Equal<ADT.Root<EBoth>, { Unit: true; Data: { value: unknown } }>>,
-	Expect<Equal<ADT.Root<EGeneric<number>>, { Generic: { value: number } }>>,
-	Expect<Equal<
-		ADT.Root<
-			ADT<{ Partial: { req: boolean, opt?: never } }>
-		>,
-		{ Partial: { req: boolean, opt?: never } }
-	>>,
-
-	Expect<Equal<ADT.Keys<ENone>, never>>,
+	Expect<Equal<ADT.Keys<ENone>, string>>,
 	Expect<Equal<ADT.Keys<EUnit>, "Unit">>,
 	Expect<Equal<ADT.Keys<EData>, "Data">>,
 	Expect<Equal<ADT.Keys<EBoth>, "Unit" | "Data">>,
-	Expect<Equal<ADT.Keys<EGeneric<number>>, "Generic">>,
 
 	Expect<Equal<ADT.Pick<ENone, never>, never>>,
 	Expect<Equal<ADT.Pick<EUnit, never>, never>>,
@@ -54,11 +32,8 @@ type EGeneric<T> = ADT<Generic<T>>;
 	Expect<Equal<ADT.Pick<EBoth, "Unit">, EUnit>>,
 	Expect<Equal<ADT.Pick<EBoth, "Data">, EData>>,
 	Expect<Equal<ADT.Pick<EBoth, "Unit" | "Data">, EBoth>>,
-	Expect<Equal<ADT.Pick<EGeneric<number>, never>, never>>,
-	Expect<Equal<ADT.Pick<EGeneric<number>, "Generic">, EGeneric<number>>>,
-	Expect<Equal<ADT.Pick<ADT<{ A: true, B: true }, "custom">, "A", "custom">, ADT<{ A: true }, "custom">>>,
 
-	Expect<Equal<ADT.Omit<ENone, never>, never>>,
+	Expect<Equal<ADT.Omit<ENone, never>, ENone>>,
 	Expect<Equal<ADT.Omit<EUnit, never>, EUnit>>,
 	Expect<Equal<ADT.Omit<EUnit, "Unit">, never>>,
 	Expect<Equal<ADT.Omit<EData, never>, EData>>,
@@ -67,60 +42,33 @@ type EGeneric<T> = ADT<Generic<T>>;
 	Expect<Equal<ADT.Omit<EBoth, "Unit">, EData>>,
 	Expect<Equal<ADT.Omit<EBoth, "Data">, EUnit>>,
 	Expect<Equal<ADT.Omit<EBoth, "Unit" | "Data">, never>>,
-	Expect<Equal<ADT.Omit<EGeneric<number>, never>, EGeneric<number>>>,
-	Expect<Equal<ADT.Omit<EGeneric<number>, "Generic">, never>>,
-
-	Expect<Equal<ADT.Extend<ENone, never>, ENone>>,
-	Expect<Equal<ADT.Extend<ENone, { A: true }>, ADT<{ A: true }>>>,
-	Expect<Equal<ADT.Extend<EUnit, never>, EUnit>>,
-	Expect<Equal<ADT.Extend<EUnit, { A: true }>, ADT<{ Unit: true; A: true }>>>,
-	Expect<Equal<ADT.Extend<EData, never>, EData>>,
-	Expect<Equal<ADT.Extend<EData, { A: true }>, ADT<{ Data: { value: unknown }; A: true }>>>,
-	Expect<Equal<ADT.Extend<EBoth, never>, EBoth>>,
-	Expect<Equal<ADT.Extend<EBoth, { Unit: { value: unknown } }>, ADT<{ Unit: { value: unknown }; Data: { value: unknown } }>>>,
-	Expect<Equal<ADT.Extend<EGeneric<number>, never>, EGeneric<number>>>,
-	Expect<Equal<ADT.Extend<EGeneric<number>, { Generic: { foo: null } }>, ADT<{ Generic: { value: number; foo: null } }>>>,
-
-	Expect<Equal<
-			ADT.Merge<
-				| ADT<{ A: true; B: true; C: { c1: string } }>
-				| ADT<{ B: { b1: string }; C: { c2: number }; D: true }>
-			>,
-			ADT<
-				{ A: true; B: { b1: string }; C: { c1: string; c2: number }; D: true }
-			>
-		>
-	>
 ];
 
 {
-	type State = ADT.Extend<
-		ADT<{ Left: { value: string }; Right: { value: string } }>,
-		{ None: true }
-	>;
+	type State = ADT<"None"> | ADT<"Left" | "Right", { value: string }>;
 
 	const getState = (): State => {
-		if ("".toString()) return { $type: "Left", value: "" };
-		if ("".toString()) return { $type: "Right", value: "" };
-		return { $type: "None" };
+		if ("".toString()) return ADT<State>().Left({ value: "" });
+		if ("".toString()) return ADT<State>().Right({ value: "" });
+		return ADT<ReturnType<typeof getState>>().None();
 	};
 
 	() => {
-		const $state = getState();
+		const state = getState();
 
-		if ($state.$type === "Left") {
-			({}) as [Expect<Equal<typeof $state, { $type: "Left"; value: string }>>];
+		if (state.$type === "Left") {
+			({}) as [Expect<Equal<typeof state, { $type: "Left"; value: string }>>];
 			return;
 		}
-		if ($state.$type === "Right") {
-			({}) as [Expect<Equal<typeof $state, { $type: "Right"; value: string }>>];
+		if (state.$type === "Right") {
+			({}) as [Expect<Equal<typeof state, { $type: "Right"; value: string }>>];
 			return;
 		}
-		if ($state.$type === "None") {
-			({}) as [Expect<Equal<typeof $state, { $type: "None" }>>];
+		if (state.$type === "None") {
+			({}) as [Expect<Equal<typeof state, { $type: "None" }>>];
 			return;
 		}
 
-		({}) as [Expect<Equal<typeof $state, never>>];
+		({}) as [Expect<Equal<typeof state, never>>];
 	};
 }

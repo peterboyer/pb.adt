@@ -1,20 +1,12 @@
-import { Define } from "./define.js";
-
 import { z } from "zod";
-import type { ADT } from "../adt.js";
+import { ADT } from "../micro.js";
 import type { Equal, Expect } from "pb.expectequal";
 
 const value = "...";
 
 test("Define", () => {
-	const Event = Define("$type")(
-		{} as {
-			Open: true;
-			Data: { value: unknown };
-			Close: true;
-		},
-	);
-	type Event = ADT.define<typeof Event>;
+	type Event = ADT<"Open"> | ADT<"Data", { value: unknown }> | ADT<"Close">;
+	const Event = ADT<Event>();
 
 	const Ready = Event.Open();
 	!0 as Expect<Equal<typeof Ready, { $type: "Open" }>>;
@@ -25,46 +17,16 @@ test("Define", () => {
 
 	{
 		expect(Event.Open()).toStrictEqual({ $type: "Open" });
+		// @ts-expect-error Data requires 1 argument.
+		expect(Event.Data()).toStrictEqual({ $type: "Data", value });
 		expect(Event.Data({ value })).toStrictEqual({ $type: "Data", value });
 		expect(Event.Close()).toStrictEqual({ $type: "Close" });
 	}
 });
 
-test("Define with options.mapper", () => {
-	const Event = Define("$type")(
-		{} as {
-			Open: true;
-			Data: { value: unknown };
-			Close: true;
-		},
-		{
-			Data: (value: unknown) => ({ value }),
-		},
-	);
-	type Event = ADT.define<typeof Event>;
-
-	const Ready = Event.Open();
-	!0 as Expect<Equal<typeof Ready, { $type: "Open" }>>;
-	const Data = Event.Data({ value });
-	!0 as Expect<Equal<typeof Data, { $type: "Data"; value: unknown }>>;
-	const Close = Event.Close();
-	!0 as Expect<Equal<typeof Close, { $type: "Close" }>>;
-
-	{
-		expect(Event.Open()).toStrictEqual({ $type: "Open" });
-		expect(Event.Data(value)).toStrictEqual({ $type: "Data", value });
-		expect(Event.Close()).toStrictEqual({ $type: "Close" });
-	}
-});
-
 test("Define with all properties optional", () => {
-	const Event = Define("$type")(
-		{} as {
-			Ready: true;
-			Error: { value?: unknown };
-		},
-	);
-	type Event = ADT.define<typeof Event>;
+	type Event = ADT<"Ready"> | ADT<"Error", { value?: unknown }>;
+	const Event = ADT<Event>();
 
 	const Ready = Event.Ready();
 	!0 as Expect<Equal<typeof Ready, { $type: "Ready" }>>;
@@ -94,7 +56,7 @@ test("Define using Zod infer type and extend constructor", () => {
 	type Event = z.infer<typeof EventSchema>;
 
 	{
-		const Event = Object.assign(Define("$type")({} as ADT.Root<Event>), {
+		const Event = Object.assign(new Proxy(ADT<Event>(), {}), {
 			$schema: EventSchema,
 		});
 
@@ -110,27 +72,5 @@ test("Define using Zod infer type and extend constructor", () => {
 		expect(Event.$schema).toBe(EventSchema);
 		expect(Event.Open()).toEqual({ $type: "Open" });
 		expect(Event.Data({ value: 1 })).toEqual({ $type: "Data", value: 1 });
-	}
-
-	{
-		const Event = Object.assign(
-			Define("$type")({} as ADT.Root<Event>, {
-				Data: (value: unknown) => ({ value }),
-			}),
-			{ $schema: EventSchema },
-		);
-
-		const Ready = Event.Open();
-		!0 as Expect<Equal<typeof Ready, { $type: "Open" }>>;
-		const Data = Event.Data({ value });
-		// NOTE: `value` is optional because of bug with z.infer.
-		// Incorrectly infers `z.unknown()` as optional property of object.
-		!0 as Expect<Equal<typeof Data, { $type: "Data"; value?: unknown }>>;
-		const Close = Event.Close();
-		!0 as Expect<Equal<typeof Close, { $type: "Close" }>>;
-
-		expect(Event.$schema).toBe(EventSchema);
-		expect(Event.Open()).toEqual({ $type: "Open" });
-		expect(Event.Data(1)).toEqual({ $type: "Data", value: 1 });
 	}
 });
