@@ -18,14 +18,14 @@ import { ADT } from "pb.adt";
 ```
 
 
-`ADT` can create discriminated union types.
+As a type, `ADT` can create discriminated union types.
 
 
 ```ts
 type Post =
   | ADT<"Ping">
   | ADT<"Text", { title?: string; body: string }>
-  | ADT<"Photo", { url: string }>;
+  | ADT<"Photo" | "Video", { url: string }>;
 ```
 
 
@@ -36,11 +36,12 @@ type Post =
 type Post =
   | { $type: "Ping" }
   | { $type: "Text"; title?: string; body: string }
-  | { $type: "Photo"; url: string };
+  | { $type: "Photo"; url: string }
+  | { $type: "Video"; url: string };
 ```
 
 
-As a function `ADT` can return value-typed ease-of-use constructors.
+As a function, `ADT` can return ease-of-use value-typed constructors.
 
 - All constructed ADT variant values are plain objects.
 - They match their variant types exactly.
@@ -58,6 +59,7 @@ const posts: Post[] = [
   Post.Ping(),
   Post.Text({ body: "Hello, World!" }),
   Post.Photo({ url: "https://example.com/image.jpg" }),
+  Post.Video({ url: "https://example.com/video.mp4" }),
 ];
 ```
 
@@ -68,6 +70,7 @@ const posts: Post[] = [
   ADT<Post>().Ping(),
   ADT<Post>().Text({ body: "Hello, World!" }),
   ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
+  ADT<Post>().Video({ url: "https://example.com/video.mp4" }),
 ];
 ```
 
@@ -79,9 +82,12 @@ you would any other object.
 
 
 ```ts
-function PostgetTitle(post: Post): string | undefined {
+function PostgetSummary(post: Post): string | undefined {
   if (post.$type === "Text") {
     return post.title;
+  }
+  if (post.$type === "Photo" || post.$type === "Video") {
+    return post.url;
   }
   return undefined;
 }

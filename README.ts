@@ -20,14 +20,14 @@ import { ADT } from "pb.adt";
 //<
 
 /*!
-`ADT` can create discriminated union types.
+As a type, `ADT` can create discriminated union types.
 !*/
 
 //>
 type Post =
 	| ADT<"Ping">
 	| ADT<"Text", { title?: string; body: string }>
-	| ADT<"Photo", { url: string }>;
+	| ADT<"Photo" | "Video", { url: string }>;
 void {} as unknown as Post; //-
 //<
 
@@ -39,12 +39,13 @@ void {} as unknown as Post; //-
 type Post_ =
 	| { $type: "Ping" }
 	| { $type: "Text"; title?: string; body: string }
-	| { $type: "Photo"; url: string };
+	| { $type: "Photo"; url: string }
+	| { $type: "Video"; url: string };
 void {} as unknown as Post_; //-
 //<
 
 /*!
-As a function `ADT` can return value-typed ease-of-use constructors.
+As a function, `ADT` can return ease-of-use value-typed constructors.
 
 - All constructed ADT variant values are plain objects.
 - They match their variant types exactly.
@@ -60,6 +61,7 @@ const posts: Post[] = [
 	Post.Ping(),
 	Post.Text({ body: "Hello, World!" }),
 	Post.Photo({ url: "https://example.com/image.jpg" }),
+	Post.Video({ url: "https://example.com/video.mp4" }),
 ];
 void posts; //-
 //<
@@ -69,6 +71,7 @@ const posts_: Post[] = [
 	ADT<Post>().Ping(),
 	ADT<Post>().Text({ body: "Hello, World!" }),
 	ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
+	ADT<Post>().Video({ url: "https://example.com/video.mp4" }),
 ];
 void posts_; //-
 //<
@@ -81,13 +84,16 @@ you would any other object.
 !*/
 
 //>
-function Post_getTitle(post: Post): string | undefined {
+function Post_getSummary(post: Post): string | undefined {
 	if (post.$type === "Text") {
 		return post.title;
 	}
+	if (post.$type === "Photo" || post.$type === "Video") {
+		return post.url;
+	}
 	return undefined;
 }
-void Post_getTitle; //-
+void Post_getSummary; //-
 //<
 
 //>>> Handle all cases.
