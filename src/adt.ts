@@ -26,14 +26,14 @@ export namespace ADT {
 	>;
 }
 
-export const ADT = <T extends ADT>(): ADTMapper<T> => proxy as any;
+export const ADT = <T extends ADT>(): Mapper<T> => proxy as any;
 
 const proxy = new Proxy({}, { get: (_, type: string) => mapper.bind(type) });
 const mapper = function (this: string, data: any) {
 	return { $type: this, ...data };
 };
 
-type ADTMapper<T extends ADT> = Identity<
+type Mapper<T extends ADT> = Identity<
 	Intersect<
 		T extends { $type: string }
 			? [Exclude<keyof T, "$type">] extends [never]
