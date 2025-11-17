@@ -21,8 +21,7 @@ void function inspect(event: WebEvent): string | undefined {
 		case "Click":
 			return void console.log(event, event.x, event.y);
 		default:
-			const _$: never = event;
-			return void _$;
+			return event;
 	}
 };
 

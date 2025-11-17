@@ -2,46 +2,46 @@ import { ADT } from "./adt.js";
 
 import type { Expect, Equal } from "pb.types";
 
-type ENone = ADT;
-type EUnit = ADT<"Unit">;
-type EData = ADT<"Data", { value: unknown }>;
-type EBoth = EUnit | EData;
+type None = ADT;
+type Unit = ADT<"Unit">;
+type Data = ADT<"Data", { value: unknown }>;
+type Both = Unit | Data;
 
 // prettier-ignore
 ({}) as [
-	Expect<Equal<ENone, ADT>>,
-	Expect<Equal<ENone["$type"], string>>,
-	Expect<Equal<EUnit, { $type: "Unit" }>>,
-	Expect<Equal<EUnit["$type"], "Unit">>,
-	Expect<Equal<EData, { $type: "Data"; value: unknown }>>,
-	Expect<Equal<EData["$type"], "Data">>,
-	Expect<Equal<EBoth, { $type: "Unit" } | { $type: "Data"; value: unknown }>>,
-	Expect<Equal<EBoth["$type"], "Unit" | "Data">>,
+	Expect<Equal<None, ADT>>,
+	Expect<Equal<None["$type"], string>>,
+	Expect<Equal<Unit, { $type: "Unit" }>>,
+	Expect<Equal<Unit["$type"], "Unit">>,
+	Expect<Equal<Data, { $type: "Data"; value: unknown }>>,
+	Expect<Equal<Data["$type"], "Data">>,
+	Expect<Equal<Both, { $type: "Unit" } | { $type: "Data"; value: unknown }>>,
+	Expect<Equal<Both["$type"], "Unit" | "Data">>,
 
-	Expect<Equal<ADT.Keys<ENone>, string>>,
-	Expect<Equal<ADT.Keys<EUnit>, "Unit">>,
-	Expect<Equal<ADT.Keys<EData>, "Data">>,
-	Expect<Equal<ADT.Keys<EBoth>, "Unit" | "Data">>,
+	Expect<Equal<ADT.Keys<None>, string>>,
+	Expect<Equal<ADT.Keys<Unit>, "Unit">>,
+	Expect<Equal<ADT.Keys<Data>, "Data">>,
+	Expect<Equal<ADT.Keys<Both>, "Unit" | "Data">>,
 
-	Expect<Equal<ADT.Pick<ENone, never>, never>>,
-	Expect<Equal<ADT.Pick<EUnit, never>, never>>,
-	Expect<Equal<ADT.Pick<EUnit, "Unit">, EUnit>>,
-	Expect<Equal<ADT.Pick<EData, never>, never>>,
-	Expect<Equal<ADT.Pick<EData, "Data">, EData>>,
-	Expect<Equal<ADT.Pick<EBoth, never>, never>>,
-	Expect<Equal<ADT.Pick<EBoth, "Unit">, EUnit>>,
-	Expect<Equal<ADT.Pick<EBoth, "Data">, EData>>,
-	Expect<Equal<ADT.Pick<EBoth, "Unit" | "Data">, EBoth>>,
+	Expect<Equal<ADT.Pick<None, never>, never>>,
+	Expect<Equal<ADT.Pick<Unit, never>, never>>,
+	Expect<Equal<ADT.Pick<Unit, "Unit">, Unit>>,
+	Expect<Equal<ADT.Pick<Data, never>, never>>,
+	Expect<Equal<ADT.Pick<Data, "Data">, Data>>,
+	Expect<Equal<ADT.Pick<Both, never>, never>>,
+	Expect<Equal<ADT.Pick<Both, "Unit">, Unit>>,
+	Expect<Equal<ADT.Pick<Both, "Data">, Data>>,
+	Expect<Equal<ADT.Pick<Both, "Unit" | "Data">, Both>>,
 
-	Expect<Equal<ADT.Omit<ENone, never>, ENone>>,
-	Expect<Equal<ADT.Omit<EUnit, never>, EUnit>>,
-	Expect<Equal<ADT.Omit<EUnit, "Unit">, never>>,
-	Expect<Equal<ADT.Omit<EData, never>, EData>>,
-	Expect<Equal<ADT.Omit<EData, "Data">, never>>,
-	Expect<Equal<ADT.Omit<EBoth, never>, EBoth>>,
-	Expect<Equal<ADT.Omit<EBoth, "Unit">, EData>>,
-	Expect<Equal<ADT.Omit<EBoth, "Data">, EUnit>>,
-	Expect<Equal<ADT.Omit<EBoth, "Unit" | "Data">, never>>,
+	Expect<Equal<ADT.Omit<None, never>, None>>,
+	Expect<Equal<ADT.Omit<Unit, never>, Unit>>,
+	Expect<Equal<ADT.Omit<Unit, "Unit">, never>>,
+	Expect<Equal<ADT.Omit<Data, never>, Data>>,
+	Expect<Equal<ADT.Omit<Data, "Data">, never>>,
+	Expect<Equal<ADT.Omit<Both, never>, Both>>,
+	Expect<Equal<ADT.Omit<Both, "Unit">, Data>>,
+	Expect<Equal<ADT.Omit<Both, "Data">, Unit>>,
+	Expect<Equal<ADT.Omit<Both, "Unit" | "Data">, never>>,
 ];
 
 {
