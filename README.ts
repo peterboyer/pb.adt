@@ -15,39 +15,12 @@ npm install pb.adt
 
 //+ # Quickstart
 
-/*!
-`ADT` can create discriminated union types.
-!*/
-
 //>
 import { ADT } from "pb.adt";
-
-{
-	type Post =
-		| ADT<"Ping">
-		| ADT<"Text", { title?: string; body: string }>
-		| ADT<"Photo", { url: string }>;
-	void {} as unknown as Post; //-
-}
-
 //<
 
 /*!
-... which is identical to if you declared it manually.
-!*/
-
-//>
-{
-	type Post =
-		| { $type: "Ping" }
-		| { $type: "Text"; title?: string; body: string }
-		| { $type: "Photo"; url: string };
-	void {} as unknown as Post; //-
-}
-//<
-
-/*!
-As a function `ADT` can return value-typed ease-of-use constructors.
+`ADT` can create discriminated union types.
 !*/
 
 //>
@@ -55,90 +28,67 @@ type Post =
 	| ADT<"Ping">
 	| ADT<"Text", { title?: string; body: string }>
 	| ADT<"Photo", { url: string }>;
-const Post = ADT<Post>();
+void {} as unknown as Post; //-
 //<
 
 /*!
-Constructors can create ADT variant values:
+... which is identical to if you declared it manually.
+!*/
+
+//>
+type Post_ =
+	| { $type: "Ping" }
+	| { $type: "Text"; title?: string; body: string }
+	| { $type: "Photo"; url: string };
+void {} as unknown as Post_; //-
+//<
+
+/*!
+As a function `ADT` can return value-typed ease-of-use constructors.
+
 - All constructed ADT variant values are plain objects.
 - They match their variant types exactly.
 - They do not have any methods or hidden properties.
 !*/
 
 //>
-{
-	const posts: Post[] = [
-		Post.Ping(),
-		Post.Text({ body: "Hello, World!" }),
-		Post.Photo({ url: "https://example.com/image.jpg" }),
-	];
-	void posts; //-
-}
+const Post = ADT<Post_>();
 //<
 
 //>
-{
-	const posts: Post[] = [
-		ADT<Post>().Ping(),
-		ADT<Post>().Text({ body: "Hello, World!" }),
-		ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
-	];
-	void posts; //-
-}
+const posts: Post[] = [
+	Post.Ping(),
+	Post.Text({ body: "Hello, World!" }),
+	Post.Photo({ url: "https://example.com/image.jpg" }),
+];
+void posts; //-
+//<
+
+//>
+const posts_: Post[] = [
+	ADT<Post>().Ping(),
+	ADT<Post>().Text({ body: "Hello, World!" }),
+	ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
+];
+void posts_; //-
 //<
 
 /*!
+# Usage
+
 `ADT` variant values are simple objects, you can narrow and access properties as
 you would any other object.
 !*/
 
 //>
 function Post_getTitle(post: Post): string | undefined {
-	return post.$type === "Text" ? post.title : undefined;
+	if (post.$type === "Text") {
+		return post.title;
+	}
+	return undefined;
 }
 void Post_getTitle; //-
 //<
-
-/*!
-# API
-
-- [`ADT`](#adt)
-	- [`ADT.Keys`](#adtkeys)
-	- [`ADT.Pick`](#adtpick)
-	- [`ADT.Omit`](#adtomit)
-!*/
-
-/*!
-## `ADT`
-
-```
-(type) ADT<TType, TData?>
-```
-!*/
-
-//>
-{
-	type Foo = ADT<"Unit"> | ADT<"Data", { value: string }>;
-	void {} as unknown as Foo; //-
-}
-//<
-
-/*!
-```
-(func) ADT<T>() => { Unit() => Unit, Data(data) => Data, ... }
-```
-!*/
-
-//>
-type Foo = ADT<"Unit"> | ADT<"Data", { value: string }>;
-void {} as unknown as Foo; //-
-//<
-
-//backtotop
-
-/*!
-## Switch
-!*/
 
 //>>> Handle all cases.
 //>
@@ -223,6 +173,46 @@ function Component(): Element {
 	})();
 }
 void Component; //-
+//<
+//<<<
+
+/*!
+# API
+
+- [`ADT`](#adt)
+	- [`ADT.Keys`](#adtkeys)
+	- [`ADT.Pick`](#adtpick)
+	- [`ADT.Omit`](#adtomit)
+!*/
+
+/*!
+## `ADT`
+!*/
+
+/*!
+```
+(type) ADT<TType, TData?>
+(func) ADT<T>() => { Unit() => Unit, Data(data) => Data, ... }
+```
+!*/
+
+//>>> Define variants.
+//>
+type Foo = ADT<"Unit"> | ADT<"Data", { value: string }>;
+void {} as unknown as Foo; //-
+//<
+//<<<
+
+//>>> Create variant values.
+//>
+const Foo = ADT<Foo>();
+const foo = [
+	Foo.Unit(),
+	Foo.Data({ value: "..." }),
+	ADT<Foo>().Unit(),
+	ADT<Foo>().Data({ value: "..." }),
+];
+void foo; //-
 //<
 //<<<
 

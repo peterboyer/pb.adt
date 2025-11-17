@@ -12,36 +12,13 @@ npm install pb.adt
 
 # Quickstart
 
-`ADT` can create discriminated union types.
-
 
 ```ts
 import { ADT } from "pb.adt";
-
-{
-  type Post =
-    | ADT<"Ping">
-    | ADT<"Text", { title?: string; body: string }>
-    | ADT<"Photo", { url: string }>;
-}
-
 ```
 
 
-... which is identical to if you declared it manually.
-
-
-```ts
-{
-  type Post =
-    | { $type: "Ping" }
-    | { $type: "Text"; title?: string; body: string }
-    | { $type: "Photo"; url: string };
-}
-```
-
-
-As a function `ADT` can return value-typed ease-of-use constructors.
+`ADT` can create discriminated union types.
 
 
 ```ts
@@ -49,38 +26,53 @@ type Post =
   | ADT<"Ping">
   | ADT<"Text", { title?: string; body: string }>
   | ADT<"Photo", { url: string }>;
-const Post = ADT<Post>();
 ```
 
 
-Constructors can create ADT variant values:
+... which is identical to if you declared it manually.
+
+
+```ts
+type Post =
+  | { $type: "Ping" }
+  | { $type: "Text"; title?: string; body: string }
+  | { $type: "Photo"; url: string };
+```
+
+
+As a function `ADT` can return value-typed ease-of-use constructors.
+
 - All constructed ADT variant values are plain objects.
 - They match their variant types exactly.
 - They do not have any methods or hidden properties.
 
 
 ```ts
-{
-  const posts: Post[] = [
-    Post.Ping(),
-    Post.Text({ body: "Hello, World!" }),
-    Post.Photo({ url: "https://example.com/image.jpg" }),
-  ];
-}
+const Post = ADT<Post>();
 ```
 
 
 
 ```ts
-{
-  const posts: Post[] = [
-    ADT<Post>().Ping(),
-    ADT<Post>().Text({ body: "Hello, World!" }),
-    ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
-  ];
-}
+const posts: Post[] = [
+  Post.Ping(),
+  Post.Text({ body: "Hello, World!" }),
+  Post.Photo({ url: "https://example.com/image.jpg" }),
+];
 ```
 
+
+
+```ts
+const posts: Post[] = [
+  ADT<Post>().Ping(),
+  ADT<Post>().Text({ body: "Hello, World!" }),
+  ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
+];
+```
+
+
+# Usage
 
 `ADT` variant values are simple objects, you can narrow and access properties as
 you would any other object.
@@ -88,45 +80,13 @@ you would any other object.
 
 ```ts
 function PostgetTitle(post: Post): string | undefined {
-  return post.$type === "Text" ? post.title : undefined;
+  if (post.$type === "Text") {
+    return post.title;
+  }
+  return undefined;
 }
 ```
 
-
-# API
-
-- [`ADT`](#adt)
-  - [`ADT.Keys`](#adtkeys)
-  - [`ADT.Pick`](#adtpick)
-  - [`ADT.Omit`](#adtomit)
-
-## `ADT`
-
-```
-(type) ADT<TType, TData?>
-```
-
-
-```ts
-{
-  type Foo = ADT<"Unit"> | ADT<"Data", { value: string }>;
-}
-```
-
-
-```
-(func) ADT<T>() => { Unit() => Unit, Data(data) => Data, ... }
-```
-
-
-```ts
-type Foo = ADT<"Unit"> | ADT<"Data", { value: string }>;
-```
-
-
-<div align=right><a href=#api>Back to top ⤴</a></div>
-
-## Switch
 
 <details><summary>(<strong>Example</strong>) Handle all cases.</summary>
 
@@ -210,6 +170,42 @@ function Component(): Element {
     }
   })();
 }
+```
+
+</details>
+
+# API
+
+- [`ADT`](#adt)
+  - [`ADT.Keys`](#adtkeys)
+  - [`ADT.Pick`](#adtpick)
+  - [`ADT.Omit`](#adtomit)
+
+## `ADT`
+
+```
+(type) ADT<TType, TData?>
+(func) ADT<T>() => { Unit() => Unit, Data(data) => Data, ... }
+```
+
+<details><summary>(<strong>Example</strong>) Define variants.</summary>
+
+```ts
+type Foo = ADT<"Unit"> | ADT<"Data", { value: string }>;
+```
+
+</details>
+
+<details><summary>(<strong>Example</strong>) Create variant values.</summary>
+
+```ts
+const Foo = ADT<Foo>();
+const foo = [
+  Foo.Unit(),
+  Foo.Data({ value: "..." }),
+  ADT<Foo>().Unit(),
+  ADT<Foo>().Data({ value: "..." }),
+];
 ```
 
 </details>
