@@ -26,12 +26,12 @@ void function inspect(event: WebEvent): string | undefined {
 };
 
 function getWebEvent(): WebEvent | ADT<"None"> {
-	if ("".toString()) return WebEvent.PageLoad();
-	if ("".toString()) return WebEvent.PageUnload();
+	if ("".toString()) return WebEvent.PageLoad;
+	if ("".toString()) return WebEvent.PageUnload;
 	if ("".toString()) return WebEvent.KeyPress({ key: "x" });
 	if ("".toString()) return WebEvent.Paste({ content: "..." });
 	if ("".toString()) return WebEvent.Click({ x: 10, y: 10 });
-	return ADT<ReturnType<typeof getWebEvent>>().None();
+	return ADT<ReturnType<typeof getWebEvent>>().None;
 }
 
 void function app() {

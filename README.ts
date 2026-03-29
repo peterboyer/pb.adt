@@ -58,7 +58,7 @@ const Post = ADT<Post_>();
 
 //>
 const posts: Post[] = [
-	Post.Ping(),
+	Post.Ping,
 	Post.Text({ body: "Hello, World!" }),
 	Post.Photo({ url: "https://example.com/image.jpg" }),
 	Post.Video({ url: "https://example.com/video.mp4" }),
@@ -68,7 +68,7 @@ void posts; //-
 
 //>
 const posts_: Post[] = [
-	ADT<Post>().Ping(),
+	ADT<Post>().Ping,
 	ADT<Post>().Text({ body: "Hello, World!" }),
 	ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
 	ADT<Post>().Video({ url: "https://example.com/video.mp4" }),
@@ -141,7 +141,7 @@ type State =
 const State = ADT<State>();
 
 export function Component(): Element {
-	const [state, setState] = useState<State>(State.Pending());
+	const [state, setState] = useState<State>(State.Pending);
 
 	// fetch data and exclusively handle success or error states
 	useEffect(() => {
@@ -209,9 +209,9 @@ void {} as unknown as Foo; //-
 //>
 const Foo = ADT<Foo>();
 const foo = [
-	Foo.Unit(),
+	Foo.Unit,
 	Foo.Data({ value: "..." }),
-	ADT<Foo>().Unit(),
+	ADT<Foo>().Unit,
 	ADT<Foo>().Data({ value: "..." }),
 ];
 void foo; //-

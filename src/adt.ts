@@ -26,25 +26,68 @@ export namespace ADT {
 	>;
 }
 
-export const ADT = <T extends ADT>(): Mapper<T> => proxy as any;
+// @ts-ignore
+export function ADT<T extends ADT>(): ADTMapper<T>;
+export function ADT<T>(value: T): value is Extract<T, ADT<string>>;
+export function ADT<T>(...args: [] | [value: unknown]) {
+	if (args.length === 1) {
+		const value = args[0];
+		return value &&
+			(typeof value === "object" || typeof value === "function") &&
+			"$type" in value
+			? !!value.$type
+			: false;
+	}
+	return ADTMapper();
+}
 
-const proxy = new Proxy({}, { get: (_, type: string) => mapper.bind(type) });
-const mapper = function (this: string, data: any) {
-	return { $type: this, ...data };
-};
+function ADTMapper<T extends ADT>(): ADTMapper<T> {
+	const cache: Partial<Record<string, ADTFunction>> = {};
+	return new Proxy({} as ADTMapper<T>, {
+		get(_, type: string) {
+			const fnCached = cache[type];
+			if (fnCached) {
+				return fnCached;
+			}
 
-type Mapper<T extends ADT> = Identity<
+			const fn = ADTFunction(type);
+			cache[type] = fn;
+			return fn;
+		},
+	});
+}
+
+type ADTMapper<T extends ADT> = Identity<
 	Intersect<
 		T extends { $type: string }
 			? [Exclude<keyof T, "$type">] extends [never]
-				? { [Key in T["$type"]]: () => T }
+				? {
+						// Variant without data.
+						[Key in T["$type"]]: T;
+					}
 				: {
+						// Variant with data.
 						[Key in T["$type"]]: (
 							...args: Record<never, never> extends Omit<T, "$type">
-								? [data?: Identity<Omit<T, "$type">>]
-								: [data: Identity<Omit<T, "$type">>]
+								? // Variant without required data properties.
+									[data?: Identity<Omit<T, "$type">>]
+								: // Variant with required data properties.
+									[data: Identity<Omit<T, "$type">>]
 						) => T;
 					}
 			: never
 	>
 >;
+
+type ADTFunction = (
+	data?: Record<string, unknown>,
+) => { $type: string } & Record<string, unknown>;
+
+function ADTFunction(type: string): ADTFunction {
+	return Object.assign(
+		function ADTFunction(data?: Record<string, unknown>) {
+			return { $type: type, ...data };
+		},
+		{ $type: type },
+	);
+}
