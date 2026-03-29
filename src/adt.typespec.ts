@@ -42,7 +42,7 @@ type Both = Unit | Data;
 	const getState = (): State => {
 		if ("".toString()) return ADT<State>().Left({ value: "" });
 		if ("".toString()) return ADT<State>().Right({ value: "" });
-		return ADT<ReturnType<typeof getState>>().None;
+		return ADT<ReturnType<typeof getState>>().None();
 	};
 
 	() => {
@@ -91,14 +91,14 @@ type Post =
 	  >;
 
 {
-	const ping = ADT<Post>().Ping;
+	const ping = ADT<Post>().Ping();
 	void ping;
 }
 
 {
 	const Post = ADT<Post>();
 
-	const ping = Post.Ping;
+	const ping = Post.Ping();
 	void ping;
 
 	const text = Post.Text({ body: "" });
@@ -107,7 +107,7 @@ type Post =
 
 {
 	const posts: Post[] = [
-		ADT<Post>().Ping,
+		ADT<Post>().Ping(),
 		ADT<Post>().Text({ body: "Hello, World!" }),
 		ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
 	];
