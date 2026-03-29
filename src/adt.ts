@@ -12,22 +12,10 @@ export type ADT<
 		? Identity<{ $type: U } & TData>
 		: never;
 
-export namespace ADT {
-	export type Keys<T extends ADT> = T["$type"];
-
-	export type Pick<T extends ADT, TType extends Keys<T>> = Extract<
-		T,
-		ADT<TType>
-	>;
-
-	export type Omit<T extends ADT, TType extends Keys<T>> = Exclude<
-		T,
-		ADT<TType>
-	>;
-}
+////////////////////////////////////////////////////////////////////////////////
 
 // @ts-ignore
-export function ADT<T extends ADT>(): ADTMapper<T>;
+export function ADT<T extends ADT>(): ADT.Mapper<T>;
 export function ADT<T>(value: T): value is Extract<T, ADT<string>>;
 export function ADT<T>(...args: [] | [value: unknown]) {
 	if (args.length === 1) {
@@ -38,56 +26,76 @@ export function ADT<T>(...args: [] | [value: unknown]) {
 			? !!value.$type
 			: false;
 	}
-	return ADTMapper();
+	return ADT_Mapper();
 }
 
-function ADTMapper<T extends ADT>(): ADTMapper<T> {
-	const cache: Partial<Record<string, ADTFunction>> = {};
-	return new Proxy({} as ADTMapper<T>, {
+export namespace ADT {
+	export type Mapper<T extends ADT> = Identity<
+		Intersect<
+			T extends { $type: string }
+				? [Exclude<keyof T, "$type">] extends [never]
+					? {
+							// Variant without data.
+							[Key in T["$type"]]: T;
+						}
+					: {
+							// Variant with data.
+							[Key in T["$type"]]: (
+								...args: Record<never, never> extends Omit<T, "$type">
+									? // Variant without required data properties.
+										[data?: Identity<Omit<T, "$type">>]
+									: // Variant with required data properties.
+										[data: Identity<Omit<T, "$type">>]
+							) => T;
+						}
+				: never
+		>
+	>;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+function ADT_Mapper<T extends ADT>(): ADT.Mapper<T> {
+	const cache: Partial<Record<string, ReturnType<typeof ADT_Function>>> = {};
+	return new Proxy({} as ADT.Mapper<T>, {
 		get(_, type: string) {
 			const fnCached = cache[type];
 			if (fnCached) {
 				return fnCached;
 			}
 
-			const fn = ADTFunction(type);
+			const fn = ADT_Function(type);
 			cache[type] = fn;
 			return fn;
 		},
 	});
 }
 
-type ADTMapper<T extends ADT> = Identity<
-	Intersect<
-		T extends { $type: string }
-			? [Exclude<keyof T, "$type">] extends [never]
-				? {
-						// Variant without data.
-						[Key in T["$type"]]: T;
-					}
-				: {
-						// Variant with data.
-						[Key in T["$type"]]: (
-							...args: Record<never, never> extends Omit<T, "$type">
-								? // Variant without required data properties.
-									[data?: Identity<Omit<T, "$type">>]
-								: // Variant with required data properties.
-									[data: Identity<Omit<T, "$type">>]
-						) => T;
-					}
-			: never
-	>
->;
-
-type ADTFunction = (
+function ADT_Function(
+	type: string,
+): { $type: string } & ((
 	data?: Record<string, unknown>,
-) => { $type: string } & Record<string, unknown>;
-
-function ADTFunction(type: string): ADTFunction {
-	return Object.assign(
-		function ADTFunction(data?: Record<string, unknown>) {
-			return { $type: type, ...data };
+) => { $type: string } & (() => undefined)) {
+	return Object.defineProperty(
+		Object.assign(
+			(data?: Record<string, unknown>) => {
+				return Object.defineProperty(
+					Object.assign(() => undefined, { $type: type, ...data }),
+					"name",
+					{
+						value: `ADT.${type}`,
+						writable: false,
+						enumerable: false,
+					},
+				);
+			},
+			{ $type: type },
+		),
+		"name",
+		{
+			value: `ADT.${type}`,
+			writable: false,
+			enumerable: false,
 		},
-		{ $type: type },
 	);
 }
