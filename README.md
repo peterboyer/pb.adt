@@ -1,3 +1,14 @@
+<div align="center">
+
+# pb.adt
+
+**Simple ADT types for values as plain objects.**
+
+[Install](#install) • [Usage](#usage) ([Types](#types) • [Values](#values) •
+[Narrowing](#narrowing) • [Type Guard](#type-guard) • [Keys](#keys) •
+[Subtyping](#subtyping))
+
+</div>
 
 # Install
 
@@ -10,30 +21,32 @@ npm install pb.adt
 - `typescript@>=5.0.0`
 - `tsconfig.json > "compilerOptions" > { "strict": true }`
 
-# Quickstart
+# Usage
+
+## Types
 
 
 ```ts
-import { ADT } from "pb.adt";
+import type { ADT } from "pb.adt";
 ```
 
 
-As a type, `ADT` can create discriminated union types.
+The `ADT` **type** defines discriminated union types:
 
 
 ```ts
-type Post =
+export type Post =
   | ADT<"Ping">
   | ADT<"Text", { title?: string; body: string }>
   | ADT<"Photo" | "Video", { url: string }>;
 ```
 
 
-... which is identical to if you declared it manually.
+This is identical to defining the discriminated union manually:
 
 
 ```ts
-type Post =
+export type Post =
   | { $type: "Ping" }
   | { $type: "Text"; title?: string; body: string }
   | { $type: "Photo"; url: string }
@@ -41,21 +54,21 @@ type Post =
 ```
 
 
-As a function, `ADT` can return ease-of-use value-typed constructors.
+## Values
 
-- All constructed ADT variant values are plain objects.
-- They match their variant types exactly.
-- They do not have any methods or hidden properties.
+The `ADT` **function** can define a values "builder" from a given ADT type:
 
 
 ```ts
-const Post = ADT<Post>();
+import { ADT } from "pb.adt";
 ```
 
 
 
 ```ts
-const posts: Post[] = [
+export const Post = ADT<Post>();
+
+const posts: Array<Post> = [
   Post.Ping(),
   Post.Text({ body: "Hello, World!" }),
   Post.Photo({ url: "https://example.com/image.jpg" }),
@@ -66,7 +79,7 @@ const posts: Post[] = [
 
 
 ```ts
-const posts: Post[] = [
+const posts: Array<Post> = [
   ADT<Post>().Ping(),
   ADT<Post>().Text({ body: "Hello, World!" }),
   ADT<Post>().Photo({ url: "https://example.com/image.jpg" }),
@@ -75,141 +88,87 @@ const posts: Post[] = [
 ```
 
 
-# Usage
+## Narrowing
 
-`ADT` variant values are simple objects, you can narrow and access properties as
-you would any other object.
+Use the `$type` property can be used to discriminate in `if` and `switch`
+statements:
 
 
 ```ts
-export function getSummary(post: Post): string | undefined {
-  if (post.$type === "Text") {
-    return post.title;
+function handlePost(post: Post) {
+  if (post.$type === "Ping") {
+    post; // { $type: "Ping", ... }
+  } else {
+    post; // { $type: "Text", ... } | { $type: "Photo", ... } | { $type: "Video", ... }
   }
-  if (post.$type === "Photo" || post.$type === "Video") {
-    return post.url;
-  }
-  return undefined;
-}
-```
 
-
-<details><summary>(<strong>Example</strong>) Handle all cases.</summary>
-
-```ts
-const foo = {} as Foo;
-const value = ((): string => {
-  switch (foo.$type) {
-    case "Unit":
-      return "Unit()";
-    case "Data":
-      return `Data(${foo.value})`;
-    default:
-      return foo;
-  }
-})();
-```
-
-</details>
-
-<details><summary>(<strong>Example</strong>) Unhandled cases with fallback.</summary>
-
-```ts
-const foo = {} as Foo;
-const value = ((): string => {
-  switch (foo.$type) {
-    case "Unit":
-      return "Unit()";
-    default:
-      return "...";
-  }
-})();
-```
-
-</details>
-
-<details><summary>(<strong>Example</strong>) UI Framework (e.g. React) rendering all state cases.</summary>
-
-```ts
-type State =
-  | ADT<"Pending">
-  | ADT<"Ok", { items: string[] }>
-  | ADT<"Error", { cause: Error }>;
-
-const State = ADT<State>();
-
-export function Component(): Element {
-  const [state, setState] = useState<State>(State.Pending());
-
-  // fetch data and exclusively handle success or error states
-  useEffect(() => {
-    (async () => {
-      const responseResult = await fetch("/items")
-        .then((response) => response.json() as Promise<{ items: string[] }>)
-        .catch((cause) =>
-          cause instanceof Error ? cause : new Error(undefined, { cause }),
-        );
-
-      setState(
-        responseResult instanceof Error
-          ? State.Error({ cause: responseResult })
-          : State.Ok({ items: responseResult.items }),
-      );
-    })();
-  }, []);
-
-  // exhaustively handle all possible states
-  return ((): string => {
-    switch (state.$type) {
-      case "Pending":
-        return `<Spinner />`;
-      case "Ok":
-        return `<ul>${state.items.map(() => `<li />`)}</ul>`;
-      case "Error":
-        return `<span>Error: "${state.cause.message}"</span>`;
-      default:
-        return state;
+  switch (post.$type) {
+    case "Ping": {
+      post; // { $type: "Ping", ... }
+      break;
     }
-  })();
+    case "Text": {
+      post; // { $type: "Text", ... }
+      break;
+    }
+    default: {
+      post; // { $type: "Photo", ... } | { $type: "Video", ... }
+      break;
+    }
+  }
 }
 ```
 
-</details>
 
-# API
+## Type Guard
 
-- [`ADT`](#adt)
-  - [`ADT.Keys`](#adtkeys)
-  - [`ADT.Pick`](#adtpick)
-  - [`ADT.Omit`](#adtomit)
+The `ADT` **function** can also type-guard for an ADT value:
 
-## `ADT`
-
-```
-(type) ADT<TType, TData?>
-(func) ADT<T>() => { Unit() => Unit, Data(data) => Data, ... }
-```
-
-<details><summary>(<strong>Example</strong>) Define variants.</summary>
 
 ```ts
-type Foo = ADT<"Unit"> | ADT<"Data", { value: string }>;
+function handleValue(value: Post | Other): void {
+  if (ADT(value)) {
+    value; // Post
+  } else {
+    value; // Other
+  }
+
+  if (ADT(value) && value.$type === "Ping") {
+    value; // { $type: "Ping", ... }
+  } else {
+    value; // Other | { $type: "Text", ... } | { $type: "Photo", ... } | { $type: "Video", ... }
+  }
+}
 ```
 
-</details>
 
-<details><summary>(<strong>Example</strong>) Create variant values.</summary>
+## Keys
+
+Use `T['$type']` to get an ADT's discriminant types:
+
 
 ```ts
-const Foo = ADT<Foo>();
-const foo = [
-  Foo.Unit(),
-  Foo.Data({ value: "..." }),
-  ADT<Foo>().Unit(),
-  ADT<Foo>().Data({ value: "..." }),
-];
+type Types = Post["$type"];
+// "Ping" | "Text" | "Photo" | "Video"
 ```
 
-</details>
 
-<div align=right><a href=#api>Back to top ⤴</a></div>
+## Subtyping
+
+Use `Extract` and `Exclude` to "pick" and "omit" matching ADT variants:
+
+
+```ts
+type Text = Extract<Post, ADT<"Text">>;
+// { $type: "Text", ... }
+
+type Media = Extract<Post, { url: string }>;
+// { $type: "Photo", ... } | { $type: "Video", ... }
+
+type NotText = Exclude<Post, ADT<"Text">>;
+// { $type: "Ping", ... } | { $type: "Photo", ... } | { $type: "Video", ... }
+
+type NotUrls = Exclude<Post, { url: string }>;
+// { $type: "Ping", ... } | { $type: "Text", ... }
+```
+

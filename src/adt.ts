@@ -16,34 +16,8 @@ export type ADT<
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export namespace ADT {
-	export type Mapper<T extends ADT = ADT> = Identity<
-		Intersect<
-			T extends { $type: string }
-				? [Exclude<keyof T, "$type">] extends [never]
-					? {
-							// Unit variant.
-							[Key in T["$type"]]: () => T;
-						}
-					: {
-							// Data variant.
-							[Key in T["$type"]]: (
-								...args: Record<never, never> extends Omit<T, "$type">
-									? // Data variant without required properties.
-										[data?: Identity<Omit<T, "$type">>]
-									: // Data Variant with required properties.
-										[data: Identity<Omit<T, "$type">>]
-							) => T;
-						}
-				: never
-		>
-	>;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 // @ts-ignore
-export function ADT<T extends ADT>(): ADT.Mapper<T>;
+export function ADT<T extends ADT>(): Mapper<T>;
 export function ADT<T>(value: T): value is Extract<T, ADT<string>>;
 export function ADT<T>(...args: [] | [value: unknown]) {
 	if (args.length === 1) {
@@ -60,23 +34,40 @@ export function ADT<T>(...args: [] | [value: unknown]) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const mapper = new Proxy({} as ADT.Mapper, {
+type Mapper<T extends ADT = ADT> = Identity<
+	Intersect<
+		T extends { $type: string }
+			? [Exclude<keyof T, "$type">] extends [never]
+				? {
+						// Unit variant.
+						[Key in T["$type"]]: () => T;
+					}
+				: {
+						// Data variant.
+						[Key in T["$type"]]: (
+							...args: Record<never, never> extends Omit<T, "$type">
+								? // Data variant without required properties.
+									[data?: Identity<Omit<T, "$type">>]
+								: // Data Variant with required properties.
+									[data: Identity<Omit<T, "$type">>]
+						) => T;
+					}
+			: never
+	>
+>;
+
+////////////////////////////////////////////////////////////////////////////////
+
+const mapper = new Proxy({} as Mapper, {
 	get(_, type: string) {
-		const cachedConstructor = cachedConstructor_byType[type];
-		if (cachedConstructor) {
-			return cachedConstructor;
+		const cached = cache[type];
+		if (cached) {
+			return cached;
 		}
 
-		return (cachedConstructor_byType[type] = (
-			data?: Record<string, unknown>,
-		) => {
-			if (data) {
-				return { $type: type, ...data };
-			}
-
-			return Object.freeze({ $type: type });
-		});
+		const fn = (data?: Record<string, unknown>) => ({ $type: type, ...data });
+		return (cache[type] = fn);
 	},
 });
 
-const cachedConstructor_byType: Partial<Record<string, Function>> = {};
+const cache: Partial<Record<string, Function>> = {};
